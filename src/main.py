@@ -2,7 +2,7 @@ from config import load_config
 from immich.client import ImmichClient
 from immich.downloader import PhotoDownloader
 from utils.logger import setup_logger
-
+from processing.image_processor import ImageProcessor
 
 def main() -> None:
     logger = setup_logger()
@@ -49,6 +49,10 @@ def main() -> None:
         return
 
     logger.info(f"Selected cached photo: {selected_photo}")
+    processor = ImageProcessor()
+    processed_photo = processor.process_for_inky(selected_photo)
+
+    logger.info(f"Processed photo saved to: {processed_photo}")
 
 
 if __name__ == "__main__":
