@@ -10,6 +10,7 @@ class Config:
     immich_album_name: str
     photo_mode: str
     refresh_minutes: int
+    cache_target_size: int
 
 
 def load_config() -> Config:
@@ -32,4 +33,5 @@ def load_config() -> Config:
         immich_album_name=os.getenv("IMMICH_ALBUM_NAME", ""),
         photo_mode=os.getenv("PHOTO_MODE", "random"),
         refresh_minutes=int(os.getenv("REFRESH_MINUTES", "60")),
+        cache_target_size=int(os.getenv("CACHE_TARGET_SIZE", "10")),
     )

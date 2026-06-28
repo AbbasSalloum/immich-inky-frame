@@ -1,4 +1,6 @@
 from config import load_config
+from immich.client import ImmichClient
+from immich.downloader import PhotoDownloader
 from utils.logger import setup_logger
 
 
@@ -8,11 +10,45 @@ def main() -> None:
 
     config = load_config()
 
-    logger.info("Config loaded successfully")
-    logger.info(f"Immich URL: {config.immich_base_url}")
-    logger.info(f"Album: {config.immich_album_name}")
-    logger.info(f"Photo mode: {config.photo_mode}")
-    logger.info(f"Refresh minutes: {config.refresh_minutes}")
+    client = ImmichClient(
+        base_url=config.immich_base_url,
+        api_key=config.immich_api_key,
+    )
+
+    logger.info("Connecting to Immich...")
+
+    album = client.find_album_by_name(config.immich_album_name)
+
+    if not album:
+        logger.error(f"Album not found: {config.immich_album_name}")
+        return
+
+    album_id = album["id"]
+    logger.info(f"Found album: {album.get('albumName')}")
+
+    assets = client.get_album_assets(album_id)
+
+    image_assets = [
+        asset for asset in assets
+        if asset.get("type") == "IMAGE"
+    ]
+
+    logger.info(f"Image assets in album: {len(image_assets)}")
+
+    downloader = PhotoDownloader(client)
+    cached_photos = downloader.fill_cache(
+        image_assets=image_assets,
+        target_size=config.cache_target_size,
+        logger=logger,
+    )
+
+    selected_photo = downloader.pick_random_cached_photo()
+
+    if not selected_photo:
+        logger.error("No cached photos available")
+        return
+
+    logger.info(f"Selected cached photo: {selected_photo}")
 
 
 if __name__ == "__main__":
